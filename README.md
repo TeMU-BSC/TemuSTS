@@ -1,7 +1,7 @@
 # TemuSTS
-##  Semantic Text Similarity for TEMU projects
+##  (Non-)Semantic Text Similarity for TEMU projects
 
-Programa de análisis de frases similares en dos corpus. Se utiliza el indice Jaccard que compara las oraciones de manera simple como un problema de comparacion de conjuntos de palabras.
+Programa de análisis de frases similares en dos corpus. Se utilizan estrategias de análisis superficial, léxica, sin información semántica.
 
 ## Dependencias de python:
 
@@ -16,7 +16,7 @@ spacy, con el modelo para español es_core_news_md"
 python -m spacy download es_core_news_md
 
 
-La única información obligatoria es un directorio de archivos "target" que son los que queremos comparar, y encontrar frases similares, ya sea a otro ("Source"), o a un conjunto de oraciones de corpus de referencia, si no se usa la opción "Source".
+La única información obligatoria es un directorio de archivos "target" que son los que queremos comparar, y encontrar frases similares, ya sea a otro ("Source"), o a un conjunto de oraciones de corpus de referencia, si no se usa la opción "Source", con oraciones del corpus SPACCC y otros.
 
 La opción REDACT permite bloquear la salida de las oraciones de los textos cuando se quiera preservar su privacidad o sean confidenciales. En lugar de las oraciones "Target" mostrará "--XXXXXXX--"
 
@@ -59,7 +59,6 @@ For a comparison between a 1000 documents vs 981 documents directories:
 
 ### Using Fuzzy Search
 <pre>
-
 python TemuSTS.py -s /home/crodri/BSC/similitud_cc/corpus_casos_clinicos/radioccc/ -t /home/crodri/BSC/similitud_cc/corpus_casos_clinicos/oncoccc/ -o radioccc_vs_oncoccc.tsv
 
 (...)
@@ -83,5 +82,5 @@ processed  in 598.6335144042969 seconds 9.977225240071615 minutes or 0.166287087
 La salida es un archivo TSV con información sobre los archivos y los siguientes campos:
 
 
-![Salida de STS](https://github.com/cayorodriguez/-TemuSTS/blob/master/ejemplo.png)
+![Salida de STS](https://github.com/TeMU-BSC/TemuSTS/blob/master/ejemplo.png)
 
