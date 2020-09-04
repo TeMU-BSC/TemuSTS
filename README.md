@@ -10,6 +10,7 @@ spacy == 2.2.4
 numpy == 1.18.1
 
 rapidfuzz == 0.10.0
+(Si tiene problemas para instalar esta librera mediante pip, utilize el repositorio github: https://github.com/maxbachmann/rapidfuzz)
 
 spacy, con el modelo para español es_core_news_md"
 
