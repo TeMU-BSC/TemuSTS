@@ -1,7 +1,7 @@
 # TemuSTS
 ##  (Non-)Semantic Text Similarity for TEMU projects
 
-Programa de análisis de frases similares en dos corpus. Se utilizan estrategias de análisis superficial, léxica, sin información semántica.
+Esta rama del proyecto sirve para comparar la similitud de documentos de dos corpus (la rama máster es para comparar a nivel de frase). Se utilizan estrategias de análisis superficial, léxica, sin información semántica.
 
 ## Dependencias de python:
 
@@ -9,17 +9,17 @@ spacy == 2.2.4
 
 numpy == 1.18.1
 
-rapidfuzz == 0.10.0
-(Si tiene problemas para instalar esta librera mediante pip, utilize el repositorio github: https://github.com/maxbachmann/rapidfuzz)
+
+rapidfuzz == 1.0.0
+(Es una versión más moderna que el de la rama máster, instalar el requirements.txt de esta rama. Si tiene problemas para instalar esta librera mediante pip, utilize el repositorio github: https://github.com/maxbachmann/rapidfuzz)
 
 spacy, con el modelo para español es_core_news_md"
 
 python -m spacy download es_core_news_md
 
 
-La única información obligatoria es un directorio de archivos "target" que son los que queremos comparar, y encontrar frases similares, ya sea a otro ("Source"), o a un conjunto de oraciones de corpus de referencia, si no se usa la opción "Source", con oraciones del corpus SPACCC y otros.
+La única información obligatoria es un directorio de archivos "target" que son los que queremos comparar, y encontrar documentos similares, ya sea a otro ("Source"), o a un conjunto de documentos de corpus de referencia, si no se usa la opción "Source", con oraciones del corpus SPACCC y otros.
 
-La opción REDACT permite bloquear la salida de las oraciones de los textos cuando se quiera preservar su privacidad o sean confidenciales. En lugar de las oraciones "Target" mostrará "--XXXXXXX--"
 
 La opción de method permite elegir entre usar el algoritmo jaccard o una versión optimizada para velocidad de fuzzy search (por defecto)
 
@@ -78,10 +78,9 @@ processed  in 598.6335144042969 seconds 9.977225240071615 minutes or 0.166287087
 </pre>
 
 
+La salida es un archivo TSV con información sobre el nombre del documento y los siguientes campos:
+
+source_document | score | target_document
 
 
-La salida es un archivo TSV con información sobre los archivos y los siguientes campos:
-
-
-![Salida de STS](https://github.com/TeMU-BSC/TemuSTS/blob/master/ejemplo.png)
 

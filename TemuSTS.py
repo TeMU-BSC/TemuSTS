@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+# Imports
 """
 Created on Wed May 27 10:40:44 2020
 
-@author: crodri
+@author: crodri . Modifications @luisgasco
 
 Version 2.0
 
@@ -12,11 +12,10 @@ import logging
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 import spacy
 modelo="es_core_news_md"
-import wmd
+#import wmd
 nlp = spacy.load(modelo)#
 import os,sys,pickle,numpy, time
 from rapidfuzz import process
-
 
 
 from optparse import OptionParser
@@ -24,12 +23,12 @@ def generateSentences(dirin):
     if dirin[-1] != os.path.sep:
         dirin = dirin+os.path.sep
     filesin = os.listdir(dirin)
-    parrafos = {}
-    all_sents = 0
+    docs = {}
+    #all_sents = 0
     all_toks = 0
     doc_number = len(filesin)
     from collections import OrderedDict
-    for x in filesin:
+    for x, w in zip(filesin, range(0,doc_number)):
         print(dirin+x)
         txt = open(dirin+x).read().strip()
         txt = txt.replace("\n\n", "\n")
@@ -37,44 +36,10 @@ def generateSentences(dirin):
         txt = txt.replace("\n\n", "\n")
         txt = txt.replace("\n\n", "\n")
         y = nlp(txt)
-        number_sentences = len([x for x in y.sents])
-        number_toks = len([x for x in y])
-        all_sents  = all_sents + number_sentences
-        all_toks  = all_toks + number_toks
-        statsdoc = (doc_number,all_sents,all_toks)
-        w = 0
-        for s in y.sents:
-            parrafos[x+"_"+str(number_sentences)+"-"+str(w)] = s.text#s.lower_#" ".join([z.lower_ for z in s])
-            w += 1
-    return parrafos, statsdoc
+        statsdoc = doc_number
+        docs[x+"_"+str(doc_number)+"-"+str(w)] = y.text#s.lower_#" ".join([z.lower_ for z in s])
+    return docs, statsdoc
 
-def generateSourceSentences(dirin):
-    if dirin[-1] != os.path.sep:
-        dirin = dirin+os.path.sep
-    filesin = os.listdir(dirin)
-    parrafos = {}
-    all_sents = 0
-    all_toks = 0
-    doc_number = len(filesin)
-    #from collections import OrderedDict
-    for x in filesin:
-        print(dirin+x)
-        txt = open(dirin+x).read().strip()
-        txt = txt.replace("\n\n", "\n")
-        txt = txt.replace("\n\n", "\n")
-        txt = txt.replace("\n\n", "\n")
-        txt = txt.replace("\n\n", "\n")
-        y = nlp(txt)
-        number_sentences = len([x for x in y.sents])
-        number_toks = len([x for x in y])
-        all_sents  = all_sents + number_sentences
-        all_toks  = all_toks + number_toks
-        statsdoc = (doc_number,all_sents,all_toks)
-        w = 0
-        for s in y.sents:
-            parrafos[s.text] =  x+"_"+str(number_sentences)+"-"+str(w)#s.lower_#" ".join([z.lower_ for z in s])
-            w += 1
-    return parrafos, statsdoc
 
 
 #Jaccard similarity
@@ -86,19 +51,19 @@ def get_jaccard_sim(str1, str2):
 
 
 
-def fuzzy(allterms,sentence,cutoff=93):
-    highest = process.extractOne(sentence,allterms,processor=None, score_cutoff=cutoff)
+def fuzzy(allterms,doc,cutoff=93):
+    highest = process.extractOne(doc,allterms,processor=None, score_cutoff=cutoff)
     if highest:
         return highest
     else:
         return None
 
-def similitud(parrafos,sentence):
+def similitud(docs,doc):
     #from operator import itemgetter
     sim = {}
-    for k in parrafos.keys():
-        source = parrafos[k]
-        s = get_jaccard_sim(source,sentence)
+    for k in docs.keys():
+        source = docs[k]
+        s = get_jaccard_sim(source,doc)
         if s == 0.0:
             pass
         else:
@@ -110,22 +75,28 @@ def similitud(parrafos,sentence):
         return None
 
 
-def compareAndWrite(parrafos1,parrafos2,umbral,method,redact=None):
+def compareAndWrite(docs1,docs2,umbral,method,redact=None):
     similares = []
-    allterms = [x for x in parrafos1.keys()] 
-    for eachone in parrafos2.keys():
-        sentence = parrafos2[eachone]
+    allterms = [docs1[x] for x in docs1.keys()] 
+    for eachone in docs2.keys():
+        document = docs2[eachone]
         if method == 'fuzzy':
-            top = fuzzy(allterms,sentence,93)
+            top = fuzzy(allterms,document,umbral)
+            if top:
+                if top[-2] > umbral:
+                    if redact:
+                        similares.append([list(docs1.keys())[top[-1]],top[-2],eachone])
+
+                    else:
+                        similares.append([list(docs1.keys())[top[-1]],top[-2],eachone])
         elif method == 'jaccard':
-            top = similitud(parrafos1,sentence)
-        if top:
-            if top[-1] > umbral:
-                if redact:
-                    similares.append([top[0],parrafos1[top[0]],top[-1],"--XXXXXXX--",eachone])
-                    #similares.append([eachone,sentence,top[-1],"--XXXXXXX--",top[0]])
-                else:
-                    similares.append([top[0],parrafos1[top[0]],top[-1],sentence,eachone])
+            top = similitud(docs1,document)
+            if top:
+                if top[-1] > umbral:
+                    if redact:
+                        similares.append([top[0],top[-1],eachone])
+                    else:
+                        similares.append([top[0],top[-1],eachone])
     return similares
 
     
@@ -133,8 +104,8 @@ def writeOut(targetdir,similares,statstarget,method,fileout):
     import csv
     fo= open(fileout,"w")
     w = csv.writer(fo, dialect="excel", delimiter="\t")
-    w.writerow(["Target directory:"+targetdir,' # of Documents'+ str(statstarget[0]),"<=====>", '# of sentences '+str(statstarget[1]), '# of tokens '+str(statstarget[-1]),'Method:'+method])
-    w.writerow(['source_id', 'source_sentence', "score", 'target_sentence', 'target_id','method'])
+    w.writerow(["Target directory:"+targetdir,' # of Documents'+ str(statstarget),"<=====>",'Method:'+method])
+    w.writerow(['source_id', "score", 'target_id','method'])
     w.writerows(similares)
     fo.close()
 
@@ -153,16 +124,13 @@ def main(argv=None):
     t1 = time.time()
     #print("*",type(options.cluster_num))
     if options.source:
-        if options.method == 'fuzzy':
-            parrafos1, statssource = generateSourceSentences(options.source)
-        else:
-            parrafos1, statssource = generateSentences(options.source)
-        parrafos2, statstarget = generateSentences(options.target)
+        docs1, statssource = generateSentences(options.source)
+        docs2, statstarget = generateSentences(options.target)
         print("Initiating Comparison ...")
         if options.redact:
-            similares = compareAndWrite(parrafos1,parrafos2,options.umbral,options.method,options.redact)
+            similares = compareAndWrite(docs1,docs2,options.umbral,options.method,options.redact)
         else:
-            similares = compareAndWrite(parrafos1,parrafos2,options.umbral,options.method)
+            similares = compareAndWrite(docs1,docs2,options.umbral,options.method)
         if options.fileout:
             writeOut(options.target,similares,statstarget,options.method,options.fileout)
         else:
@@ -173,12 +141,12 @@ def main(argv=None):
             print("Need arguments. use python similituds_cc.py --help")
         else:
             print("No Source Directory ... Comparing against a reference corpus")
-            parrafos1 = pickle.load(open("corpus.bin","rb"))
-            parrafos2,statstarget = generateSentences(options.target)
+            docs1 = pickle.load(open("corpus.bin","rb"))
+            docs2,statstarget = generateSentences(options.target)
             if options.redact:
-                similares = compareAndWrite(parrafos1,parrafos2,options.umbral,options.method,options.redact)
+                similares = compareAndWrite(docs1,docs2,options.umbral,options.method,options.redact)
             else:
-                similares = compareAndWrite(parrafos1,parrafos2,options.umbral,options.method)
+                similares = compareAndWrite(docs1,docs2,options.umbral,options.method)
             if options.fileout:
                 writeOut(options.target,similares,statstarget,options.method,options.fileout)
             else:

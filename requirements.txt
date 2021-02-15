@@ -5,7 +5,7 @@
 numpy == 1.18.1
 
 # TemuSST.py: 18
-rapidfuzz == 0.10.0
+rapidfuzz == 1.0.0
 
 # TemuSST.py: 13
 spacy == 2.2.4
