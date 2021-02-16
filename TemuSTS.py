@@ -35,10 +35,13 @@ def generateSentences(dirin):
         txt = txt.replace("\n\n", "\n")
         txt = txt.replace("\n\n", "\n")
         txt = txt.replace("\n\n", "\n")
+        if(len(txt)==0): # Add . when the text is empty to avoid ZeroDivision in Jaccard indexes
+            txt = "."
         y = nlp(txt)
         statsdoc = doc_number
         docs[x+"_"+str(doc_number)+"-"+str(w)] = y.text#s.lower_#" ".join([z.lower_ for z in s])
     return docs, statsdoc
+
 
 
 
